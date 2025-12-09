@@ -12,7 +12,6 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import AddBot from "@/pages/add-bot";
 import BulkAdd from "@/pages/bulk-add";
-import ApiGuide from "@/pages/api-guide";
 import type { ListBotsResponse } from "@shared/schema";
 
 function Router() {
@@ -21,7 +20,6 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/add" component={AddBot} />
       <Route path="/bulk" component={BulkAdd} />
-      <Route path="/api-guide" component={ApiGuide} />
       <Route component={NotFound} />
     </Switch>
   );
