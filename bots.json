@@ -1,0 +1,11 @@
+[
+  {
+    "username": "Ziratide",
+    "host": "hcp-1.heppyhost.my.id",
+    "port": 19176,
+    "human": false,
+    "antiAfkInterval": 20000,
+    "authmePassword": "",
+    "version": ""
+  }
+]
