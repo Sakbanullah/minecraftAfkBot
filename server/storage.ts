@@ -1,37 +1,40 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import type { AddBotInput, BotState } from "@shared/schema";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getBots(): Promise<BotState[]>;
+  getBot(username: string): Promise<BotState | undefined>;
+  addBot(config: AddBotInput): Promise<BotState>;
+  removeBot(username: string): Promise<boolean>;
+  removeAllBots(): Promise<number>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+  async getBots(): Promise<BotState[]> {
+    return [];
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getBot(_username: string): Promise<BotState | undefined> {
+    return undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async addBot(config: AddBotInput): Promise<BotState> {
+    return {
+      username: config.username,
+      host: config.host,
+      port: config.port,
+      status: "connecting",
+      human: config.human,
+      antiAfkInterval: config.antiAfkInterval,
+      reconnectCount: 0,
+    };
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async removeBot(_username: string): Promise<boolean> {
+    return false;
+  }
+
+  async removeAllBots(): Promise<number> {
+    return 0;
   }
 }
 
