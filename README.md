@@ -142,4 +142,4 @@ WantedBy=multi-user.target
 
 ## License
 
-MIT
+Zircatide
