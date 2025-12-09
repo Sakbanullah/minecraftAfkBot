@@ -83,7 +83,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Monitor and manage your Minecraft AFK bots</p>
+          <p className="text-muted-foreground">jangan lupo di pas set, ip samo portny bedake</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button
