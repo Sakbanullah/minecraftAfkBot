@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 export function serveStatic(app: Express) {
   // Folder build di server/dist/public
-  const distPath = path.resolve(__dirname, "/..client/public");
+  const distPath = path.resolve(__dirname, "/../client/public");
 
   if (!fs.existsSync(distPath)) {
     console.warn(`[Warning] Build folder not found: ${distPath}`);
