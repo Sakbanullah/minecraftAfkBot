@@ -1,28 +1,44 @@
-import express, { type Express } from "express";
 import path from "path";
 import fs from "fs";
+import express from "express";
+import { createServer } from "http";
+import { registerRoutes } from "./routes";
+import { serveStatic } from "./static";
 import { fileURLToPath } from "url";
 
-export function serveStatic(app: Express) {
-  // Dapatkan __dirname
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
+const app = express();
+const httpServer = createServer(app);
 
-  // Folder build React (setelah postinstall di Railway)
-  const distPath = path.resolve(__dirname, "dist/public");
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-  if (!fs.existsSync(distPath)) {
-    console.warn(`[Warning] Build folder not found: ${distPath}`);
-    return;
-  }
+// Dapatkan __dirname di ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  // Serve semua file statis
-  app.use(express.static(distPath));
+(async () => {
+  await registerRoutes(httpServer, app);
 
-  // Semua route non-API diarahkan ke index.html
-  app.get("*", (_req, res) => {
+  // Route dashboard default
+  app.get("/", (_req, res) => {
+    const distPath = path.resolve(__dirname, "dist/public");
+    if (!fs.existsSync(path.join(distPath, "index.html"))) {
+      return res
+        .status(500)
+        .send("Dashboard belum dibuild. Jalankan `npm run build` di client.");
+    }
     res.sendFile(path.join(distPath, "index.html"));
   });
+
+  if (process.env.NODE_ENV === "production") {
+    serveStatic(app);
+  } else {
+    const { setupVite } = await import("./vite");
+    await setupVite(httpServer, app);
+  }
+
   const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(port, () => console.log(`Server running on port ${port}`));
-}
+  httpServer.listen(port, "0.0.0.0", () => {
+    console.log(`Server running on port ${port}`);
+  });
+})();
