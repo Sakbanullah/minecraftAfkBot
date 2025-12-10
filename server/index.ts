@@ -1,34 +1,42 @@
 import path from "path";
-import { fileURLToPath } from "url";
+import fs from "fs";
 import express from "express";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
+import { fileURLToPath } from "url";
 
 const app = express();
 const httpServer = createServer(app);
 
-// Middleware untuk parsing body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Dapatkan __dirname di ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 (async () => {
-  // Daftarkan semua API routes
   await registerRoutes(httpServer, app);
 
-  // Jika production, serve static React build
+  // Route dashboard default
+  app.get("/", (_req, res) => {
+    const distPath = path.resolve(__dirname, "dist/public");
+    if (!fs.existsSync(path.join(distPath, "index.html"))) {
+      return res
+        .status(500)
+        .send("Dashboard belum dibuild. Jalankan `npm run build` di client.");
+    }
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
-    // Jika development, gunakan Vite
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
 
-  // Jalankan server
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}`);
