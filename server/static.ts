@@ -1,9 +1,14 @@
 import express, { type Express } from "express";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
+
+// Dapatkan __dirname di ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export function serveStatic(app: Express) {
-  // Folder hasil build sekarang langsung di repo root / server
+  // Folder build di server/dist/public
   const distPath = path.resolve(__dirname, "dist/public");
 
   if (!fs.existsSync(distPath)) {
@@ -11,10 +16,8 @@ export function serveStatic(app: Express) {
     return;
   }
 
-  // Serve semua file statis
   app.use(express.static(distPath));
 
-  // Semua route non-API akan diarahkan ke index.html (React router)
   app.get("*", (_req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
