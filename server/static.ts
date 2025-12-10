@@ -3,14 +3,19 @@ import path from "path";
 import fs from "fs";
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve("dist/public"); // folder hasil build
+  // Folder hasil build React
+  const distPath = path.resolve(__dirname, "../client/dist/public");
+
   if (!fs.existsSync(distPath)) {
     console.warn(`[Warning] Build folder not found: ${distPath}`);
     return;
   }
 
+  // Serve semua file statis
   app.use(express.static(distPath));
-  app.use("*", (_req, res) => {
+
+  // Semua route non-API akan diarahkan ke index.html (React router)
+  app.get("*", (_req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
 }

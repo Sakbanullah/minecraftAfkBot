@@ -89,7 +89,7 @@ export function AppSidebar({ botCount = 0 }: AppSidebarProps) {
       <SidebarFooter className="p-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Info className="h-3.5 w-3.5" />
-          <span>v1.0.0 - AFK Bot Manager</span>
+          <span>v1.0.4 - AFK Bot Manager</span>
         </div>
       </SidebarFooter>
     </Sidebar>
