@@ -3,8 +3,8 @@ import path from "path";
 import fs from "fs";
 
 export function serveStatic(app: Express) {
-  // Folder hasil build React
-  const distPath = path.resolve(__dirname, "../client/dist/public");
+  // Folder hasil build sekarang langsung di repo root / server
+  const distPath = path.resolve(__dirname, "dist/public");
 
   if (!fs.existsSync(distPath)) {
     console.warn(`[Warning] Build folder not found: ${distPath}`);
