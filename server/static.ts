@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 export function serveStatic(app: Express) {
   // Folder React public
-  const publicPath = path.resolve(__dirname, "../client/public");
+  const publicPath = path.resolve(__dirname, "../client");
 
   if (!fs.existsSync(publicPath)) {
     console.warn(`[Warning] Public folder not found: ${publicPath}`);
