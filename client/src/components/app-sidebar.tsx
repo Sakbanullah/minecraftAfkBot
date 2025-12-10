@@ -11,7 +11,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Plus, Users, Settings, Server, Info } from "lucide-react";
+import { LayoutDashboard, Plus, Users, Settings, Server, Info, ListCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface AppSidebarProps {
@@ -35,10 +35,10 @@ const menuItems = [
     icon: Users,
   },
   {
-    title: "API Guide",
-    url: "/api-guide",
-    icon: Settings,
-  },
+    title: "Bot List",
+    url: "/bots",
+    icon: ListCheck, 
+  }
 ];
 
 export function AppSidebar({ botCount = 0 }: AppSidebarProps) {

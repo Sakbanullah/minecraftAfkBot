@@ -30,7 +30,7 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  app.get("/", (_req: Request, res: Response) => {
+  app.get("/api", (_req: Request, res: Response) => {
     res.json({
       ok: true,
       message: "AFK Bot Manager is running",
@@ -47,28 +47,55 @@ export async function registerRoutes(
     });
   });
 
-  app.post("/api/add", authMiddleware, addBotLimiter, async (req: Request, res: Response) => {
-    try {
-      const parsed = addBotSchema.safeParse(req.body);
-      if (!parsed.success) {
-        return res.status(400).json({
-          ok: false,
-          error: parsed.error.errors.map((e) => e.message).join(", "),
-        });
-      }
+  // Start bot
+app.post("/api/start", authMiddleware, (req: Request, res: Response) => {
+  const { username } = req.body;
+  if (!botManager.hasBot(username)) return res.status(404).json({ ok: false, error: "Bot not found" });
 
-      const botState = await botManager.addBot(parsed.data);
-      res.json({
-        ok: true,
-        username: botState.username,
-      });
-    } catch (err) {
-      res.status(400).json({
+  try {
+    botManager.startBot(username);
+    res.json({ ok: true, username, action: "started" });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err instanceof Error ? err.message : "Failed to start bot" });
+  }
+});
+
+// Stop bot
+app.post("/api/stop", authMiddleware, (req: Request, res: Response) => {
+  const { username } = req.body;
+  if (!botManager.hasBot(username)) return res.status(404).json({ ok: false, error: "Bot not found" });
+
+  try {
+    botManager.stopBot(username);
+    res.json({ ok: true, username, action: "stopped" });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err instanceof Error ? err.message : "Failed to stop bot" });
+  }
+});
+
+app.post("/api/add", authMiddleware, addBotLimiter, async (req: Request, res: Response) => {
+  try {
+    const parsed = addBotSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
         ok: false,
-        error: err instanceof Error ? err.message : "Failed to add bot",
+        error: parsed.error.errors.map(e => e.message).join(", "),
       });
     }
-  });
+
+    const botState = await botManager.addBot(parsed.data);
+    res.json({
+      ok: true,
+      username: botState.username,
+    });
+  } catch (err) {
+    res.status(400).json({
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to add bot",
+    });
+  }
+});
+
 
   app.post("/api/remove", authMiddleware, (req: Request, res: Response) => {
     const { username } = req.body;

@@ -43,7 +43,6 @@ class BotManager {
         const data = fs.readFileSync(BOTS_FILE, "utf-8");
         const configs: AddBotInput[] = JSON.parse(data);
         console.log(`[BotManager] Loading ${configs.length} bots from bots.json`);
-        
         for (const config of configs) {
           setTimeout(() => {
             this.addBot(config).catch((err) => {
@@ -71,7 +70,6 @@ class BotManager {
 
     this.bots.set(config.username, managed);
     this.saveBots();
-
     this.connectBot(managed);
     return this.getBotState(managed);
   }
@@ -79,7 +77,6 @@ class BotManager {
   private connectBot(managed: ManagedBot) {
     const { config } = managed;
     console.log(`[BotManager] Connecting bot ${config.username} to ${config.host}:${config.port}`);
-
     managed.status = "connecting";
 
     try {
@@ -101,15 +98,11 @@ class BotManager {
         managed.lastError = undefined;
 
         if (config.authmePassword) {
-          setTimeout(() => {
-            bot.chat(`/login ${config.authmePassword}`);
-          }, 1000);
+          setTimeout(() => bot.chat(`/login ${config.authmePassword}`), 1000);
         }
 
         this.startAntiAfk(managed);
-        if (config.human) {
-          this.startHumanBehavior(managed);
-        }
+        if (config.human) this.startHumanBehavior(managed);
       });
 
       bot.on("error", (err) => {
@@ -121,21 +114,17 @@ class BotManager {
       bot.on("end", (reason) => {
         console.log(`[${config.username}] Disconnected:`, reason);
         this.stopTimers(managed);
-        
-        if (this.bots.has(config.username)) {
+
+        if (this.bots.has(config.username) && managed.status !== "disconnected") {
           managed.status = "reconnecting";
           managed.reconnectCount++;
-          
           const delay = Math.min(
             RECONNECT_DELAY * Math.pow(1.5, managed.reconnectCount - 1),
             MAX_RECONNECT_DELAY
           );
-          
           console.log(`[${config.username}] Reconnecting in ${delay / 1000}s...`);
           managed.reconnectTimer = setTimeout(() => {
-            if (this.bots.has(config.username)) {
-              this.connectBot(managed);
-            }
+            if (this.bots.has(config.username)) this.connectBot(managed);
           }, delay);
         }
       });
@@ -153,24 +142,14 @@ class BotManager {
   }
 
   private stopTimers(managed: ManagedBot) {
-    if (managed.antiAfkTimer) {
-      clearInterval(managed.antiAfkTimer);
-      managed.antiAfkTimer = undefined;
-    }
-    if (managed.humanTimer) {
-      clearInterval(managed.humanTimer);
-      managed.humanTimer = undefined;
-    }
-    if (managed.reconnectTimer) {
-      clearTimeout(managed.reconnectTimer);
-      managed.reconnectTimer = undefined;
-    }
+    if (managed.antiAfkTimer) { clearInterval(managed.antiAfkTimer); managed.antiAfkTimer = undefined; }
+    if (managed.humanTimer) { clearInterval(managed.humanTimer); managed.humanTimer = undefined; }
+    if (managed.reconnectTimer) { clearTimeout(managed.reconnectTimer); managed.reconnectTimer = undefined; }
   }
 
   private startAntiAfk(managed: ManagedBot) {
     const { bot, config } = managed;
     if (!bot) return;
-
     managed.antiAfkTimer = setInterval(() => {
       if (bot && managed.status === "connected") {
         const action = Math.random();
@@ -180,20 +159,16 @@ class BotManager {
           bot.look(bot.entity.yaw + yaw, bot.entity.pitch + pitch, false);
         } else {
           bot.setControlState("jump", true);
-          setTimeout(() => {
-            if (bot) bot.setControlState("jump", false);
-          }, 100);
+          setTimeout(() => { if (bot) bot.setControlState("jump", false); }, 100);
         }
       }
     }, config.antiAfkInterval);
   }
 
   private startHumanBehavior(managed: ManagedBot) {
-    const { bot, config } = managed;
+    const { bot } = managed;
     if (!bot) return;
-
     const actions = ["forward", "back", "left", "right", "jump", "sneak"] as const;
-    
     managed.humanTimer = setInterval(() => {
       if (bot && managed.status === "connected") {
         const yaw = (Math.random() - 0.5) * 1.0;
@@ -203,9 +178,7 @@ class BotManager {
         if (Math.random() < 0.3) {
           const action = actions[Math.floor(Math.random() * actions.length)];
           bot.setControlState(action, true);
-          setTimeout(() => {
-            if (bot) bot.setControlState(action, false);
-          }, 200 + Math.random() * 500);
+          setTimeout(() => { if (bot) bot.setControlState(action, false); }, 200 + Math.random() * 500);
         }
       }
     }, 3000 + Math.random() * 5000);
@@ -213,20 +186,9 @@ class BotManager {
 
   removeBot(username: string): boolean {
     const managed = this.bots.get(username);
-    if (!managed) {
-      return false;
-    }
-
+    if (!managed) return false;
     this.stopTimers(managed);
-    
-    if (managed.bot) {
-      try {
-        managed.bot.quit();
-      } catch (err) {
-        console.error(`[${username}] Error quitting:`, err);
-      }
-    }
-
+    if (managed.bot) try { managed.bot.quit(); } catch {}
     this.bots.delete(username);
     this.saveBots();
     console.log(`[BotManager] Removed bot ${username}`);
@@ -235,12 +197,7 @@ class BotManager {
 
   removeAllBots(): number {
     const count = this.bots.size;
-    const usernames = Array.from(this.bots.keys());
-    
-    for (const username of usernames) {
-      this.removeBot(username);
-    }
-    
+    for (const username of Array.from(this.bots.keys())) this.removeBot(username);
     return count;
   }
 
@@ -264,12 +221,25 @@ class BotManager {
     };
   }
 
-  hasBot(username: string): boolean {
-    return this.bots.has(username);
+  hasBot(username: string): boolean { return this.bots.has(username); }
+  getCount(): number { return this.bots.size; }
+
+  /** START/STOP MANUAL **/
+  startBot(username: string) {
+    const managed = this.bots.get(username);
+    if (!managed) throw new Error("Bot not found");
+    if (managed.status === "connected" || managed.status === "connecting") return;
+    this.connectBot(managed);
   }
 
-  getCount(): number {
-    return this.bots.size;
+  stopBot(username: string) {
+    const managed = this.bots.get(username);
+    if (!managed) throw new Error("Bot not found");
+    if (managed.status !== "connected") return;
+    this.stopTimers(managed);
+    if (managed.bot) try { managed.bot.quit(); } catch {};
+    managed.bot = null;
+    managed.status = "disconnected";
   }
 
   shutdown() {
@@ -279,11 +249,7 @@ class BotManager {
       const managed = this.bots.get(username);
       if (managed) {
         this.stopTimers(managed);
-        if (managed.bot) {
-          try {
-            managed.bot.quit();
-          } catch {}
-        }
+        if (managed.bot) try { managed.bot.quit(); } catch {};
       }
     }
   }
@@ -291,12 +257,5 @@ class BotManager {
 
 export const botManager = new BotManager();
 
-process.on("SIGINT", () => {
-  botManager.shutdown();
-  process.exit(0);
-});
-
-process.on("SIGTERM", () => {
-  botManager.shutdown();
-  process.exit(0);
-});
+process.on("SIGINT", () => { botManager.shutdown(); process.exit(0); });
+process.on("SIGTERM", () => { botManager.shutdown(); process.exit(0); });

@@ -37,7 +37,7 @@ export function AddBotForm({ onSubmit, isLoading }: AddBotFormProps) {
     defaultValues: {
       username: "",
       host: "",
-      port: 25565,
+      port: 19176,
       human: false,
       antiAfkInterval: 20000,
       authmePassword: "",
