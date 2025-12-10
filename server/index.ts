@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 
   // Route dashboard default
   app.get("/", (_req, res) => {
-    const distPath = path.resolve(__dirname, "dist/public");
+    const distPath = path.resolve(__dirname, "/..client/public");
     if (!fs.existsSync(path.join(distPath, "index.html"))) {
       return res
         .status(500)
