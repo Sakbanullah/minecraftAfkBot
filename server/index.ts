@@ -23,4 +23,6 @@ export function serveStatic(app: Express) {
   app.get("*", (_req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
+  const port = parseInt(process.env.PORT || "5000", 10);
+  httpServer.listen(port, () => console.log(`Server running on port ${port}`));
 }
