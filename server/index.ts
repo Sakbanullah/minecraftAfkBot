@@ -12,7 +12,6 @@ const httpServer = createServer(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Dapatkan __dirname di ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -21,11 +20,11 @@ const __dirname = path.dirname(__filename);
 
   // Route dashboard default
   app.get("/", (_req, res) => {
-    const distPath = path.resolve(__dirname, "../client");
+    const distPath = path.resolve(__dirname, "../dist/public");
     if (!fs.existsSync(path.join(distPath, "index.html"))) {
-      return res
-        .status(500)
-        .send("Dashboard belum dibuild. Jalankan `npm run build` di client.");
+      return res.status(500).send(
+        "Dashboard belum dibuild. Jalankan `npm run build` di lokal untuk generate dist."
+      );
     }
     res.sendFile(path.join(distPath, "index.html"));
   });
